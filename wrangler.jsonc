@@ -6,7 +6,7 @@
 	"observability": {
 		"enabled": true,
 	},
-	"ai": { "binding": "AI" },
+	"ai": { "binding": "AI", "remote": true },
 	"durable_objects": {
 		"bindings": [{ "name": "ChatAgent", "class_name": "ChatAgent" }],
 	},
