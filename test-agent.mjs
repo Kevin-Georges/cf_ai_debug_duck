@@ -3,7 +3,7 @@
 import WebSocket from "ws";
 import { randomBytes } from "crypto";
 
-const BASE_URL = "wss://cf-ai-debug-duck.kevin-georges-dev.workers.dev";
+const BASE_URL = "ws://127.0.0.1:8788";
 const AGENT_ID = "test-session-1";
 const WS_URL = `${BASE_URL}/agents/chat-agent/${AGENT_ID}`;
 
