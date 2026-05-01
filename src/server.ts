@@ -6,9 +6,7 @@ import {
 	pruneMessages,
 	stepCountIs,
 	streamText,
-	tool,
 } from "ai";
-import { z } from "zod";
 
 const REPORT_PROMPT =
 	"Produce a debug report for this session. Use this exact structure with markdown headers:\n" +
@@ -46,7 +44,7 @@ export class ChatAgent extends AIChatAgent {
 		const workersai = createWorkersAI({ binding: this.env.AI });
 
 		const result = streamText({
-			model: workersai("@cf/meta/llama-4-scout-17b-16e-instruct"),
+			model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
 			system: `You are Debug Duck, a methodical rubber-duck debugging companion for embedded software engineers — particularly those working on automotive/CAN bus, real-time firmware, and microcontroller projects.
 
 Your job is to help engineers diagnose problems through structured questioning, not to immediately propose fixes. Behave like a senior engineer doing a peer debug session.
@@ -62,60 +60,6 @@ Tone: technical, concise, no filler. Don't say "great question." Don't apologise
 				messages: await convertToModelMessages(messagesForLLM),
 				toolCalls: "before-last-2-messages",
 			}),
-			tools: {
-				getWeather: tool({
-					description: "Get the current weather for a city",
-					inputSchema: z.object({
-						city: z.string().describe("City name"),
-					}),
-					execute: async ({ city }) => {
-						const conditions = ["sunny", "cloudy", "rainy"];
-						const temp = Math.floor(Math.random() * 30) + 5;
-						return {
-							city,
-							temperature: temp,
-							condition:
-								conditions[Math.floor(Math.random() * conditions.length)],
-						};
-					},
-				}),
-
-				getUserTimezone: tool({
-					description: "Get the user's timezone from their browser",
-					inputSchema: z.object({}),
-				}),
-
-				calculate: tool({
-					description:
-						"Perform a math calculation with two numbers. " +
-						"Requires user approval for large numbers.",
-					inputSchema: z.object({
-						a: z.number().describe("First number"),
-						b: z.number().describe("Second number"),
-						operator: z
-							.enum(["+", "-", "*", "/", "%"])
-							.describe("Arithmetic operator"),
-					}),
-					needsApproval: async ({ a, b }) =>
-						Math.abs(a) > 1000 || Math.abs(b) > 1000,
-					execute: async ({ a, b, operator }) => {
-						const ops: Record<string, (x: number, y: number) => number> = {
-							"+": (x, y) => x + y,
-							"-": (x, y) => x - y,
-							"*": (x, y) => x * y,
-							"/": (x, y) => x / y,
-							"%": (x, y) => x % y,
-						};
-						if (operator === "/" && b === 0) {
-							return { error: "Division by zero" };
-						}
-						return {
-							expression: `${a} ${operator} ${b}`,
-							result: ops[operator](a, b),
-						};
-					},
-				}),
-			},
 			stopWhen: stepCountIs(5),
 		});
 
