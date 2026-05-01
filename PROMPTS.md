@@ -68,43 +68,11 @@ Resolved four environment issues in sequence: wrong WebSocket URL path (camelCas
 
 ---
 
-## 6 — How to test locally
-
-> how can i test it on my computer
-
-Explained the `test-agent.mjs` script (change `BASE_URL` to the production URL) and `wscat` as an alternative, with a note that a browser UI was the natural next step.
-
----
-
-## 7 — Codebase explanation
-
-> what does the code even do
-
-Plain-language walkthrough: WebSocket transport, three message paths (slash commands vs LLM), Durable Object SQLite persistence, and how the system prompt shapes model behavior.
-
----
-
 ## 8 — GUI
 
 > add a gui
 
 Created `src/ui.ts` — a self-contained HTML/CSS/JS chat interface served from `GET /` with no build step. Handles WebSocket connection, streaming text-delta reassembly, minimal markdown rendering for `/report` output, auto-reconnect, and session persistence via `localStorage`. Wired it into the `fetch` handler in `server.ts` and deployed.
-
----
-
-## 9 — Cost question
-
-> does it cost anything to run
-
-Broke down Workers AI (10k Neurons/day free, ~20–30 conversations before the cap), Durable Objects (free tier sufficient for personal use), and Workers compute (not a factor). Conclusion: free for casual personal use.
-
----
-
-## 10 — Billing behaviour
-
-> would it cut my use once i hit the cap or will it charge me
-
-Workers AI stops responding at the cap — no silent charges. Charges require an explicit paid plan upgrade in the dashboard.
 
 ---
 
