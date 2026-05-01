@@ -10,8 +10,39 @@ import {
 } from "ai";
 import { z } from "zod";
 
+const REPORT_PROMPT =
+	"Produce a debug report for this session. Use this exact structure with markdown headers:\n" +
+	"## Symptom\n## Observations\n## Hypotheses considered\n## Ruled out\n## Suggested next steps\n" +
+	"Be terse. Bullet points where appropriate. No preamble.";
+
 export class ChatAgent extends AIChatAgent {
 	async onChatMessage() {
+		const lastUserMsg = [...this.messages].reverse().find((m) => m.role === "user");
+		const userText =
+			lastUserMsg?.parts.find((p): p is { type: "text"; text: string } => p.type === "text")
+				?.text.trim() ?? "";
+
+		if (userText === "/reset") {
+			await this.persistMessages([]);
+			return new Response("Session reset. Describe a new symptom when you're ready.", {
+				headers: { "Content-Type": "text/plain" },
+			});
+		}
+
+		const messagesForLLM =
+			userText === "/report" && lastUserMsg
+				? this.messages.map((m) =>
+						m === lastUserMsg
+							? {
+									...m,
+									parts: m.parts.map((p) =>
+										p.type === "text" ? { ...p, text: REPORT_PROMPT } : p
+									),
+								}
+							: m
+					)
+				: this.messages;
+
 		const workersai = createWorkersAI({ binding: this.env.AI });
 
 		const result = streamText({
@@ -28,7 +59,7 @@ When a user describes a symptom:
 
 Tone: technical, concise, no filler. Don't say "great question." Don't apologise. Treat the user as a peer. Avoid generic advice ("check your wiring") — always be specific to the data the user has shared.`,
 			messages: pruneMessages({
-				messages: await convertToModelMessages(this.messages),
+				messages: await convertToModelMessages(messagesForLLM),
 				toolCalls: "before-last-2-messages",
 			}),
 			tools: {
