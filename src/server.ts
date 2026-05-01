@@ -1,5 +1,6 @@
 import { AIChatAgent } from "@cloudflare/ai-chat";
 import { routeAgentRequest } from "agents";
+import { UI_HTML } from "./ui";
 import { createWorkersAI } from "workers-ai-provider";
 import {
 	convertToModelMessages,
@@ -69,6 +70,12 @@ Tone: technical, concise, no filler. Don't say "great question." Don't apologise
 
 export default {
 	async fetch(request: Request, env: Env) {
+		const url = new URL(request.url);
+		if (request.method === "GET" && url.pathname === "/") {
+			return new Response(UI_HTML, {
+				headers: { "Content-Type": "text/html;charset=utf-8" },
+			});
+		}
 		return (
 			(await routeAgentRequest(request, env)) ||
 			new Response("Not found", { status: 404 })
